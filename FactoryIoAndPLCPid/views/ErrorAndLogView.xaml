@@ -1,0 +1,12 @@
+﻿<UserControl x:Class="FactoryIoAndPLCPid.views.ErrorAndLogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:FactoryIoAndPLCPid.views"
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="1250">
+    <Grid Background="AliceBlue">
+            <TextBlock Text="Error and Log View" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+    </Grid>
+</UserControl>

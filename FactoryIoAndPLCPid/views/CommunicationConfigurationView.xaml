@@ -1,0 +1,373 @@
+﻿<UserControl x:Class="FactoryIoAndPLCPid.views.CommunicationConfigurationView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:FactoryIoAndPLCPid.views"
+      xmlns:controls="clr-namespace:FactoryIoAndPLCPid.views.MYUserControl"
+      mc:Ignorable="d" 
+      d:DesignHeight="700" d:DesignWidth="1250"
+      >
+    <UserControl.Resources>
+
+        <Style x:Key="newBorderBackground" TargetType="Border">
+            <Setter Property="Margin" Value="20" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="CornerRadius" Value="15" />
+            <Setter Property="Background" >
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#FFFFFF" Offset="0" />
+                        <!-- 温和浅灰 -->
+                        <GradientStop Color="#eFFFFF" Offset="1" />
+                        <!-- 略带蓝调的灰 -->
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+
+
+        </Style>
+
+        <!-- 自定义按钮样式 -->
+        <Style x:Key="FocusVisual">
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Rectangle Margin="2" StrokeDashArray="1 2" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" SnapsToDevicePixels="true" StrokeThickness="1"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <SolidColorBrush x:Key="Button.Static.Background" Color="#FFDDDDDD"/>
+        <SolidColorBrush x:Key="Button.Static.Border" Color="#FF707070"/>
+        <SolidColorBrush x:Key="Button.MouseOver.Background" Color="#FFBEE6FD"/>
+        <SolidColorBrush x:Key="Button.MouseOver.Border" Color="#FF3C7FB1"/>
+        <SolidColorBrush x:Key="Button.Pressed.Background" Color="#FFC4E5F6"/>
+        <SolidColorBrush x:Key="Button.Pressed.Border" Color="#FF2C628B"/>
+        <SolidColorBrush x:Key="Button.Disabled.Background" Color="#FFF4F4F4"/>
+        <SolidColorBrush x:Key="Button.Disabled.Border" Color="#FFADB2B5"/>
+        <SolidColorBrush x:Key="Button.Disabled.Foreground" Color="#FF838383"/>
+        <Style x:Key="ButtonStyle1" TargetType="{x:Type Button}">
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
+            <Setter Property="Background" Value="{StaticResource Button.Static.Background}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+
+
+                        <Border Grid.Column="1" x:Name="border"
+                              Background="{TemplateBinding Background}"
+                              CornerRadius="15"
+                              BorderBrush="{TemplateBinding BorderBrush}"
+                              BorderThickness="0" 
+                              SnapsToDevicePixels="true">
+                            <Grid >
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="40"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock FontFamily="{StaticResource IconFont}" 
+                                     Foreground="White" FontSize="18" Name="iconTextBlock"
+                                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    >
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+
+                                            <Style.Triggers>
+                                                <!-- 根据按钮内容显示不同的图标 -->
+                                                <DataTrigger Binding="{Binding Content, RelativeSource={RelativeSource AncestorType=Button}}" Value="启动连接">
+                                                    <Setter Property="Text" Value="&#xe65d;"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Content, RelativeSource={RelativeSource AncestorType=Button}}" Value="断开连接">
+                                                    <Setter Property="Text" Value="&#xe6ae;"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <ContentPresenter Grid.Column="1" x:Name="contentPresenter"
+                                             Focusable="False"
+                                             HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                             Margin="3"
+                                             RecognizesAccessKey="True" 
+                                             SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
+                                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              />
+                            </Grid>
+                        </Border>
+
+
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsDefaulted" Value="true">
+                                <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.MouseOver.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.MouseOver.Border}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="true">
+                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Pressed.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Pressed.Border}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Disabled.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Disabled.Border}"/>
+                                <Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource Button.Disabled.Foreground}"/>
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+       
+
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <!-- 第一行 第一列  :  配置PLC的IP地址和端口号与连接PLC按钮  -->
+        <Border  Style="{StaticResource newBorderBackground}" >
+            <Grid Margin="20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="160"/>
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+
+                <Label  Grid.Row="0"  Style="{StaticResource CapsuleLabelA}" 
+                  Content="通讯配置" FontSize="18" Background="LightBlue"
+                  Foreground="White"
+                  HorizontalAlignment="Center" 
+                  VerticalAlignment="Center"  />
+                <Label  Grid.Row="1" Style="{StaticResource CapsuleLabel}" Content="通讯方式:" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <Label  Grid.Row="1" Style="{StaticResource CapsuleLabelB}" Content="通讯协议Modbus-TCP" Grid.Column="1" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+                <Label  Grid.Row="2" Style="{StaticResource CapsuleLabel}" Content="IP/端口号:" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+
+                    <TextBox  Width="120" Margin="15,0,20,0"
+                               Background="LightBlue" Foreground="White"
+                               Text="{Binding IpName}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <TextBox  Width="120" Margin="15,0,20,0"
+                              Background="LightBlue" Foreground="White"
+                              Text="{Binding PortName}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+                </StackPanel>
+
+                <Label  Grid.Row="3"  Style="{StaticResource CapsuleLabel}" Content="连接/断开:" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button  Grid.Row="3" Style="{StaticResource ButtonStyle1}"  Background="Green"
+                             Width="120" Margin="-10,0,35,0"
+                             Content="启动连接" Grid.Column="1" FontSize="18" 
+                             HorizontalAlignment="Center" VerticalAlignment="Center" 
+                             Command="{Binding ConnectCommand}"/>
+                    <Button  Grid.Row="3" Style="{StaticResource ButtonStyle1}"  Background="OrangeRed"
+                             Width="120"
+                             Content="断开连接" Grid.Column="1" FontSize="18"
+                             HorizontalAlignment="Center" VerticalAlignment="Center" 
+                             Command="{Binding DisconnectCommand}"
+                             />
+                </StackPanel>
+
+            </Grid>
+        </Border>
+        <Border Grid.Column="1"  Style="{StaticResource newBorderBackground}" >
+            <Grid Margin="20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="160"/>
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition Height="100"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Label  Grid.Row="0"  Style="{StaticResource CapsuleLabelA}" 
+                        Content="通讯状态" FontSize="18" 
+                        Background="LightBlue" Foreground="White"
+                        HorizontalAlignment="Center" 
+                        VerticalAlignment="Center"  />
+
+                <Label  Grid.Row="1" Style="{StaticResource CapsuleLabel}" 
+                        Content="连接状态:" FontSize="18" HorizontalAlignment="Center" 
+                        VerticalAlignment="Center" />
+                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock  FontSize="33" Margin="0,0,20,0"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                FontFamily="{StaticResource IconFont}"
+                                >
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value="&#xe603;"/>
+                                <Setter Property="Foreground" Value="Red"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                        <Setter Property="Text" Value="&#xe602;"/>
+                                        <Setter Property="Foreground" Value="Green"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                                
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" >
+                        
+                        <!-- 胶囊文字 -->
+                        <Border x:Name="StatusBorder" CornerRadius="10" Padding="10,5" VerticalAlignment="Center">
+                            <TextBlock x:Name="StatusText"  Foreground="White" 
+                                       FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                       >
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="未连接"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                                <Setter Property="Text" Value="已连接"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsConnected}" Value="False">
+                                                <Setter Property="Text" Value="未连接"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                                
+                                
+                            </TextBlock>
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="Gray"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                            <Setter Property="Background" Value="Green"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsConnected}" Value="False">
+                                            <Setter Property="Background" Value="Gray"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                        </Border>
+                    </StackPanel>
+
+
+                </StackPanel>
+                <Label  Grid.Row="2" Style="{StaticResource CapsuleLabel}" 
+                        Content="心跳状态:" FontSize="18" HorizontalAlignment="Center" 
+                       VerticalAlignment="Center" />
+
+                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock x:Name="heartbeatStatus" Text="{Binding HeartbeatMessage}" FontSize="18" Margin="20,0,35,0"
+                               VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <controls:HeartbeatUser Grid.Row="2" Grid.Column="1" 
+                        Height="80" 
+                        IsBeating="{Binding Heartbeat}"                    
+                        TheBackground="Red"
+                        Width="96" Margin="0" Grid.RowSpan="1">
+
+                    </controls:HeartbeatUser>
+                </StackPanel>
+                <Label  Grid.Row="3" Style="{StaticResource CapsuleLabel}" 
+                  Content="延时状态:" FontSize="18" HorizontalAlignment="Center" 
+                  VerticalAlignment="Center" />
+                <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBox  Style="{StaticResource CapsuleTextBoxA}"
+                              Background="#F350607A" Foreground="White"
+                              Text="500MS/次" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                   
+                </StackPanel>
+
+            </Grid>
+        </Border>
+        <Border Grid.Row="1" Style="{StaticResource newBorderBackground}" >
+            <Grid Margin="20">
+                <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160"/>
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition Height="100"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                <Label  Style="{StaticResource CapsuleLabelA}" 
+                         Content="数据收发速率" FontSize="18" HorizontalAlignment="Center" 
+                         VerticalAlignment="Center" Background="LightBlue" Foreground="White"/>
+                <Label  Style="{StaticResource CapsuleLabel}" 
+                        Grid.Row="1"
+                        Content="数据读速率" FontSize="18" HorizontalAlignment="Center" 
+                        VerticalAlignment="Center" />
+                <Label  Style="{StaticResource CapsuleLabel}" 
+                        Grid.Row="2"
+                        Content="数据发速率" FontSize="18" HorizontalAlignment="Center" 
+                        VerticalAlignment="Center" />
+                <Label  Style="{StaticResource CapsuleLabel}" 
+                        Grid.Row="3"
+                        Content="数据收发成功率" FontSize="18" HorizontalAlignment="Center" 
+                        VerticalAlignment="Center" />
+                <Label  Style="{StaticResource CapsuleLabelA}" 
+                        Grid.Row="1" Grid.Column="1" 
+                        Background="LightBlue"  Foreground="White"
+                         Content="{Binding ReadSpeedRate}" FontSize="18" HorizontalAlignment="Center" 
+                        VerticalAlignment="Center" />
+                <Label  Style="{StaticResource CapsuleLabelA}" 
+                        Grid.Row="2" Grid.Column="1" 
+                        Background="LightBlue"  Foreground="White"
+                         Content="{Binding WriteSpeedRate}" FontSize="18" HorizontalAlignment="Center" 
+                        VerticalAlignment="Center" />
+                <Label  Style="{StaticResource CapsuleLabelA}" 
+                         Grid.Row="3" Grid.Column="1" 
+                         Background="LightBlue"  Foreground="White"
+                          Content="{Binding ReadAndWriteSuccessRate}" FontSize="18" HorizontalAlignment="Center"
+                         VerticalAlignment="Center" />
+
+
+            </Grid>
+        </Border>
+        
+        <Border Grid.Row="1" Grid.Column="1"  Style="{StaticResource newBorderBackground}" >
+            
+            <Grid  Margin="0,10" >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="60"/>
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+               <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Label  Style="{StaticResource CapsuleLabelA}" 
+                        Content="系统信息" FontSize="18" HorizontalAlignment="Center"
+                        Margin="0,0,40,-20"
+                         VerticalAlignment="Center" Background="LightBlue" Foreground="White"/>
+                <controls:MYDataBlock Grid.Row="1" Height="160" Value="{Binding MemoryUsage}" Header="内存" />
+
+                <controls:MYDataBlock Grid.Row="1" Height="160" Value="{Binding CpuUsage}" Header="CPU" Grid.Column="1" />
+            </Grid>
+        </Border>
+
+        
+
+    </Grid>
+</UserControl>

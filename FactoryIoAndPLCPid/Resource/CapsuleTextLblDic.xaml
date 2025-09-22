@@ -1,0 +1,70 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style TargetType="Label" x:Key="CapsuleLabel">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Label">
+                    <Border Background="#E4E7EB"
+                        CornerRadius="10"
+                       Padding="10,5,10,5" >
+                        <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                <Setter Property="Content" Value="已连接"/>
+                <Setter Property="Background" Value="Green"/>
+            </DataTrigger>
+        </Style.Triggers>
+        
+    </Style>
+
+   <Style TargetType="Label" x:Key="CapsuleLabelB">
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="Label">
+                    <Border Background="#337FA8DA"
+                        CornerRadius="10"
+                       Padding="10,5,10,5" >
+                    <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                </Border>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+    </Style>
+    
+    <Style TargetType="Label" x:Key="CapsuleLabelA">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Label">
+                    <Border Background="{TemplateBinding Background}"
+                      CornerRadius="10"
+                     Padding="10,5,10,5" >
+                        <ContentPresenter HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style TargetType="TextBox" x:Key="CapsuleTextBoxA">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border Background="{TemplateBinding Background}"
+                   CornerRadius="10"
+                  Padding="10,5,10,5" >
+                        <ContentPresenter  Content="{TemplateBinding Text}"
+                            HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

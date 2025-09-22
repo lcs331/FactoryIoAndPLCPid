@@ -1,0 +1,156 @@
+﻿<Window x:Class="FactoryIoAndPLCPid.views.MainView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FactoryIoAndPLCPid.views"
+        xmlns:prism="http://prismlibrary.com/"
+        mc:Ignorable="d"  
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None" AllowsTransparency="True" 
+        Background="Transparent"
+       x:Name="MainWindow"  ResizeMode="CanResize" 
+        Title="MainView" Height="850" Width="1250">
+    <Window.Resources>
+        <!-- 自定义字体图标按钮样式 -->
+        <Style TargetType="Button" x:Key="WindowControlButtonStyle">
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Template">
+
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="Transparent" Name="back">
+                            <TextBlock Text="{Binding Content,RelativeSource={RelativeSource AncestorType=Button,Mode=FindAncestor}}"
+                VerticalAlignment="Center" HorizontalAlignment="Center"
+                FontFamily="/Resource/Icon/#iconfont" FontSize="16"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="back" Property="Background" Value="#22FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="back" Property="Background" Value="#44FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- 自定义单选按钮样式 -->
+        <Style x:Key="GenderRadioButtonTemplate" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Margin" Value="10,0,0,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border Background="Transparent" CornerRadius="7" Name="back">
+                            <ContentControl Content="{TemplateBinding Content}" VerticalAlignment="Center"
+                             HorizontalAlignment="Center" Margin="20,4" FontSize="13"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="back" Property="Background" Value="#44FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <Border CornerRadius="5">
+        <Border.Effect>
+            <DropShadowEffect ShadowDepth="0" BlurRadius="10" Color="#FF000000" Opacity="0.5"/>
+        </Border.Effect>
+        <Border.Background> 
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#203551" Offset="0"/>
+                <GradientStop Color="#063554" Offset="0.7"/>
+            </LinearGradientBrush>
+        </Border.Background>
+    
+    <Grid >
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition />
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+            <Grid MouseLeftButtonDown="Grid_MouseLeftButtonDown">
+                <TextBlock Text="&#xe614;" VerticalAlignment="Center"
+                   FontSize="32" Margin="10,0,0,0" 
+                   FontFamily="/Resource/Icon/#iconfont"
+                   Foreground="#007DFA"/>
+                <TextBlock Text="Factory实时水位检测" VerticalAlignment="Center"
+                           FontSize="24" Margin="50,0,0,0" Foreground="#FFFFFF"
+                           FontFamily="微软 yahei"/>
+               
+            </Grid>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right">
+            <Button Style="{StaticResource WindowControlButtonStyle}"
+                               Content="&#xe650;"  
+                            Command="{Binding MinimizeCommand}"
+                            CommandParameter="{Binding ElementName=MainWindow}"/>
+            <Button  Background="Transparent" Width="40" Foreground="White" BorderBrush="Transparent"
+                              BorderThickness="0" FontFamily ="/Resource/Icon/#iconfont" FontSize="16" Content="&#xe600;"
+                               Command="{Binding MaximizeORNormalCommand}" 
+                             CommandParameter="{Binding ElementName=MainWindow}">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Style.Triggers>
+                            <DataTrigger  Binding="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=WindowState}" Value="Maximized">
+                                <Setter Property="Content" Value="&#xe65b;"/>
+                            </DataTrigger>
+                            <DataTrigger  Binding="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=WindowState}" Value="Normal">
+                                <Setter Property="Content" Value="&#xe600;"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            <Button Style="{StaticResource WindowControlButtonStyle}"
+                                Content="&#xe601;"
+                             Command="{Binding CloseCommand}"
+                            CommandParameter="{Binding ElementName=MainWindow}"/>
+        </StackPanel>
+            <StackPanel Grid.Row="1" Orientation="Horizontal" >
+                <Border CornerRadius="5" Height="30" Background="#22FFFFFF" Margin="10,0,0,0"
+                         HorizontalAlignment="Center" VerticalAlignment="Center"
+                        >
+                    <Grid>
+                    <TextBlock Text="功能选择：" VerticalAlignment="Center"
+                      FontSize="18" Margin="20,0,0,0" Foreground="#FFFFFF"
+                       />
+                </Grid>
+                </Border>
+                
+                <RadioButton Content="通讯配置" Style="{StaticResource GenderRadioButtonTemplate}"
+                 Command="{Binding NavigateCommand}" IsChecked="True"  CommandParameter="CommunicationConfigurationView"
+                             />
+
+                <RadioButton  Content="实时监控" Style="{StaticResource GenderRadioButtonTemplate}" 
+                  Command="{Binding NavigateCommand}"  CommandParameter="RealTimeMonitoringView"
+                  />
+                <RadioButton Content="历史数据" Style="{StaticResource GenderRadioButtonTemplate}"
+                 Command="{Binding NavigateCommand}" CommandParameter="HistoricalDataView"/>
+                <RadioButton Content="告警/日志" Style="{StaticResource GenderRadioButtonTemplate}"
+                 Command="{Binding NavigateCommand}" CommandParameter="ErrorAndLogView" />
+               
+            </StackPanel>
+            
+            <ContentControl Margin="0,10" Grid.Row="2" prism:RegionManager.RegionName="ContentRegion"/>
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Left">
+                <TextBlock Text="当前时间：" VerticalAlignment="Center"
+                   Margin="10.0" 
+                   Foreground="#FFFFFF" FontSize="18"/>
+                <TextBlock Text="{Binding Time}" 
+                           VerticalAlignment="Center"
+                            Margin="10.0" 
+                           Foreground="#FFFFFF" FontSize="18"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>
