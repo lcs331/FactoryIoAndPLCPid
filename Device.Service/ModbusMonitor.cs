@@ -59,19 +59,6 @@ namespace Device.Service
             return Math.Round(totalWriteCount / seconds, 2);
         }
 
-        // 读成功率（百分比）
-        public double GetReadSuccessRate()
-        {
-            if (totalReadCount == 0) return 0;
-            return Math.Round((double)successReadCount / totalReadCount * 100, 2);
-        }
-
-        // 写成功率（百分比）
-        public double GetWriteSuccessRate()
-        {
-            if (totalWriteCount == 0) return 0;
-            return Math.Round((double)successWriteCount / totalWriteCount * 100, 2);
-        }
         //总成功率（百分比）
         public double GetTotalSuccessRate()
         {
