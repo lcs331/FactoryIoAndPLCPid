@@ -104,6 +104,11 @@ namespace Device.Service
             return Convert.ToInt32(GetTotalSuccessRate());
         }
 
-       
+        public bool TryReconnect()
+        {
+           
+
+            return true;
+        }
     }
 }

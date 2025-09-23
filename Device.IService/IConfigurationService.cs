@@ -24,6 +24,7 @@ namespace Device.IService
         //获取读写成功率
         int GetSuccessRate();
 
-
+        //尝试重新连接
+        bool TryReconnect();
     }
 }

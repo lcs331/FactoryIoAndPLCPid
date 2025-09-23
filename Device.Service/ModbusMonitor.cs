@@ -51,7 +51,10 @@ namespace Device.Service
             return Math.Round(totalReadCount / seconds, 2);
         }
 
-        // 写速率（次/秒）
+        /// <summary>
+        /// /写速率（次/秒）
+        /// </summary>
+        /// <returns></returns>
         public double GetWriteRate()
         {
             double seconds = writeStopwatch.Elapsed.TotalSeconds;
