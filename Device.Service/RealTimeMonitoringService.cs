@@ -13,10 +13,12 @@ namespace Device.Service
     {
         public ObservableCollection<DeciveDataInfos> GetDeciveDataInfos()
         {
+            ObservableCollection<DeciveDataInfos> deciveDataInfos = new ObservableCollection<DeciveDataInfos>();
             if (client.Connected)
             {
 
             }
+            return deciveDataInfos;
         }
     }
 }
