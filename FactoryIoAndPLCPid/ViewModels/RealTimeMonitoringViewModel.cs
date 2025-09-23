@@ -8,6 +8,6 @@ namespace FactoryIoAndPLCPid.ViewModels
 {
     public class RealTimeMonitoringViewModel:BindableBase
     {
-
+        
     }
 }
