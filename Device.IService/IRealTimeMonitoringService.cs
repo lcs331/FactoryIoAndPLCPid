@@ -10,6 +10,6 @@ namespace Device.IService
 {
     public interface IRealTimeMonitoringService
     {
-        ObservableCollection<DeciveDataInfos> GetDeciveDataInfos();
+        DeciveDataInfos? GetDeciveDataInfos();
     }
 }

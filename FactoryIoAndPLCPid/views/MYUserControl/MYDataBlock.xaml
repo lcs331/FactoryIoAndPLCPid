@@ -10,10 +10,10 @@
         <EventTrigger RoutedEvent="Loaded">
             <BeginStoryboard>
                 <Storyboard>
-                    <DoubleAnimation  Duration="0:0:4"  Storyboard.TargetName="rt"  
+                    <DoubleAnimation  Duration="0:0:10"  Storyboard.TargetName="rt"  
                                       Storyboard.TargetProperty="Angle" From="0" To="360" 
                                      RepeatBehavior="Forever"/>
-                    <DoubleAnimation  Duration="0:0:7"  Storyboard.TargetName="rt1"
+                    <DoubleAnimation  Duration="0:0:15"  Storyboard.TargetName="rt1"
                                     Storyboard.TargetProperty="Angle" From="0" To="-360"
                                      RepeatBehavior="Forever"/>
                 </Storyboard>

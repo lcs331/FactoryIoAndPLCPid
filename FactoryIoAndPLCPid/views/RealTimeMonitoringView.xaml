@@ -4,10 +4,17 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:FactoryIoAndPLCPid.views"
+             xmlns:local1="clr-namespace:FactoryIoAndPLCPid.DeviceConverter"
              xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="1250">
-
+    <UserControl.Resources>
+        <local1:StateColorConverter  x:Key="StateColorConverter"/>
+        <local1:StateDescConverter  x:Key="StateDescConverter"/>
+        <local1:StateConverter  x:Key="StateConverter"/>
+    </UserControl.Resources>
+    
+    
     <Border Margin="10" CornerRadius="10"
             >
         <Border.Background>
@@ -27,7 +34,7 @@
         <Border Background="#801A1A1A" Padding="15,10" CornerRadius="10,10,0,0" >
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <!-- 状态指示灯 -->
-                <Ellipse x:Name="StatusIndicator" Width="12" Height="12" Margin="0,0,10,0">
+                <Ellipse  Width="12" Height="12" Margin="0,0,10,0">
                     <Ellipse.Fill>
                         <SolidColorBrush x:Name="StatusBrush" Color="#FF00FF00"/>
                     </Ellipse.Fill>
@@ -57,52 +64,60 @@
                     <RowDefinition Height="90"/>
                     <RowDefinition />
                 </Grid.RowDefinitions>
-                <UniformGrid  Columns="5">
-                    <Border Background="#1AFFFFFF" CornerRadius="4" Padding="10" Margin="5" Width="80" Height="70">
-                        <StackPanel>
-                            <TextBlock Text="DI 状态" FontSize="10" Foreground="#80FFFFFF" TextAlignment="Center"/>
-                            <TextBlock  Text="正常" FontSize="14" FontWeight="Bold" 
-                             Foreground="#FF00FF00" TextAlignment="Center" Margin="0,2,0,0"/>
-                            <TextBlock Text="设备启动" FontSize="9" Foreground="#CCFFFFFF" TextAlignment="Center"/>
-                        </StackPanel>
-                       </Border>
-                    <Border Background="#1AFFFFFF" CornerRadius="4" Padding="10" Margin="5" Width="80" Height="70">
-                        <StackPanel>
-                            <TextBlock Text="DI 状态" FontSize="10" Foreground="#80FFFFFF" TextAlignment="Center"/>
-                            <TextBlock  Text="正常" FontSize="14" FontWeight="Bold" 
-                                       Foreground="#FF00FF00" TextAlignment="Center" Margin="0,2,0,0"/>
-                            <TextBlock Text="设备异常" FontSize="9" Foreground="#CCFFFFFF" TextAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
-                    <Border Background="#1AFFFFFF" CornerRadius="4" Padding="10" Margin="5" Width="80" Height="70">
-                        <StackPanel>
-                            <TextBlock  Text="DI 状态" FontSize="10" Foreground="#80FFFFFF" TextAlignment="Center"/>
-                            <TextBlock  Text="正常" FontSize="14" FontWeight="Bold" 
-                                        Foreground="#FF00FF00" TextAlignment="Center" Margin="0,2,0,0"/>
-                            <TextBlock Text="停止指示" FontSize="9" Foreground="#CCFFFFFF" TextAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
-                    <Border Background="#1AFFFFFF" CornerRadius="4" Padding="10" Margin="5" Width="80" Height="70">
-                        <StackPanel>
-                            <TextBlock Text="DI 状态" FontSize="10" Foreground="#80FFFFFF" TextAlignment="Center"/>
-                            <TextBlock  Text="正常" FontSize="14" FontWeight="Bold" 
-                                         Foreground="#FF00FF00" TextAlignment="Center" Margin="0,2,0,0"/>
-                            <TextBlock Text="启动指示" FontSize="9" Foreground="#CCFFFFFF" TextAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
-                    <Border Background="#1AFFFFFF" CornerRadius="4" Padding="10" Margin="5" Width="80" Height="70">
-                        <StackPanel>
-                            <TextBlock Text="DI 状态" FontSize="10" Foreground="#80FFFFFF" TextAlignment="Center"/>
-                            <TextBlock  Text="正常" FontSize="14" FontWeight="Bold" 
-                                        Foreground="#FF00FF00" TextAlignment="Center" Margin="0,2,0,0"/>
-                            <TextBlock Text="从站液体罐" FontSize="9" Foreground="#CCFFFFFF" TextAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
-                </UniformGrid>
+                <ItemsControl ItemsSource="{Binding Cards}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="#1AFFFFFF" CornerRadius="4" Padding="10" Margin="20,10" Width="80" Height="70">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Title}" FontSize="10" Foreground="#80FFFFFF" TextAlignment="Center"/>
+                                    <TextBlock Text="{Binding Value}" FontSize="14" FontWeight="Bold" Foreground="LimeGreen" 
+                               TextAlignment="Center" Margin="0,2,0,0"/>
+                                    <TextBlock Text="{Binding Description}" FontSize="9" Foreground="#CCFFFFFF" TextAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
                 <Grid Grid.Row="1" Margin="40">
-                    <lvc:CartesianChart >
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="40"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <ItemsControl Margin="600,0,0,0" ItemsSource="{Binding LineLegendItems}"  >
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="5,0,5,0">
+                                        <!-- 颜色方块 -->
+                                        <Ellipse  Width="12" Height="12" Fill="{Binding Color}" Margin="0,0,10,0">
+                                        
+                                            <Ellipse.Effect>
+                                                <BlurEffect Radius="5"/>
+                                            </Ellipse.Effect>
+                                        </Ellipse>
+                                        <!-- 曲线名称 -->
+                                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Foreground="White"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+
+
+                        <lvc:CartesianChart Grid.Row ="1">
                         <lvc:CartesianChart.Series>
-                        <lvc:LineSeries Values=""
+                            <lvc:LineSeries Values="{Binding WaterLevelValues}"
                                         PointGeometrySize="0"
                                         Stroke="LightBlue"
                                         Title="水位"
@@ -116,7 +131,7 @@
                                     </LinearGradientBrush>
                                 </lvc:LineSeries.Fill>
                             </lvc:LineSeries>
-                            <lvc:LineSeries Values=""
+                            <lvc:LineSeries Values="{Binding OutflowValues}"
                                             PointGeometrySize="0"
                                             Stroke="Orange"
                                             Title="出水速率"
@@ -130,7 +145,7 @@
                                     </LinearGradientBrush>
                                 </lvc:LineSeries.Fill>
                             </lvc:LineSeries>
-                            <lvc:LineSeries Values=""
+                            <lvc:LineSeries Values="{Binding InletValveValues}"
                                             PointGeometrySize="0"
                                             Stroke="Green"
                                             Title="进水阀门"
@@ -144,7 +159,7 @@
                                     </LinearGradientBrush>
                                 </lvc:LineSeries.Fill>
                             </lvc:LineSeries>
-                            <lvc:LineSeries Values=""
+                            <lvc:LineSeries Values="{Binding OutletValveValues}"
                                             PointGeometrySize="0"
                                             Stroke="White"
                                             Title="出水阀门"
@@ -175,6 +190,7 @@
                             </lvc:Axis>
                         </lvc:CartesianChart.AxisY>
                     </lvc:CartesianChart>
+                </Grid>
                 </Grid>
             </Grid>
 

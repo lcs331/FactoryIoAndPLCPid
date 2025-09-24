@@ -33,6 +33,7 @@ namespace FactoryIoAndPLCPid
             //注册
             containerRegistry.Register<IGetSystemDataService, GetSystemDataService>();
             containerRegistry.Register<IConfigurationService, ConfigurationService>();
+            containerRegistry.Register<IRealTimeMonitoringService, RealTimeMonitoringService>();
             containerRegistry.RegisterForNavigation<CommunicationConfigurationView>();
             containerRegistry.RegisterForNavigation<ErrorAndLogView>();
             containerRegistry.RegisterForNavigation<HistoricalDataView>();
@@ -44,9 +45,9 @@ namespace FactoryIoAndPLCPid
             base.OnInitialized();
 
             var resourceManager= Container.Resolve<IRegionManager>();
-            resourceManager.RequestNavigate("ContentRegion", "RealTimeMonitoringView");
-            resourceManager.RequestNavigate("ContentRegion", "HistoricalDataView");
-            resourceManager.RequestNavigate("ContentRegion", "ErrorAndLogView");
+            //resourceManager.RequestNavigate("ContentRegion", "RealTimeMonitoringView");
+            //resourceManager.RequestNavigate("ContentRegion", "HistoricalDataView");
+            //resourceManager.RequestNavigate("ContentRegion", "ErrorAndLogView");
             resourceManager.RequestNavigate("ContentRegion", "CommunicationConfigurationView");
 
         }

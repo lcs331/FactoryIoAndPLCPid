@@ -9,7 +9,7 @@ using Modbus.Device;
 using System.Diagnostics.Metrics;
 namespace Device.Service
 {
-    public class ConfigurationService :ModbusBase ,IConfigurationService
+    public class ConfigurationService : ModbusBase, IConfigurationService
     {
         public ObservableCollection<string> GetIpAddress()
         {
@@ -22,36 +22,38 @@ namespace Device.Service
                     ipAddress.Add(ip.ToString());
                 }
             }
-          
+
             return ipAddress;
         }
 
 
         public bool ReadHearbeat()
         {
+            short intValue = 0;
+            if (master == null)
+                return false;
             if (client.Connected)
             {
-                byte slaveId = 1;         // PLC Modbus Server 的 ID
-                ushort startAddress = 14; // 对应 DB3.DBW26 的 Modbus 地址
-                ushort numRegisters = 1;  // Int 占 1 个寄存器（注意：S7 Int 是 16 位）
-                if(master== null)
-                    return false;
-                ushort[] result = master.ReadHoldingRegisters(slaveId, startAddress, numRegisters);
-              
-                short intValue = (short)result[0]; // 转换成有符号 Int16
-                if (intValue == 1)
-                    RecordRead(true);
-                else
-                    RecordRead(false);
-          
-                   
+                Task.Run(async () =>
+                {
+                    await Task.Delay(300);
+                    byte slaveId = 1;         // PLC Modbus Server 的 ID
+                    ushort startAddress = 14; // 对应 DB3.DBW26 的 Modbus 地址
+                    ushort numRegisters = 1;  // Int 占 1 个寄存器（注意：S7 Int 是 16 位）              
+                    ushort[] result = master.ReadHoldingRegisters(slaveId, startAddress, numRegisters);
+                    intValue = (short)result[0]; // 转换成有符号 Int16
+                    if (intValue == 1)
+                        RecordRead(true);
+                    else
+                        RecordRead(false);
 
+                });
                 return intValue == 1;
             }
             else
                 return false;
         }
-        
+
 
         public bool WriteHearbeat()
         {
@@ -64,7 +66,7 @@ namespace Device.Service
                                               // Int 占 1 个寄存器（注意：S7 Int 是 16 位）
                     if (master == null)
                         return false;
-                    Task.Run( async () =>
+                    Task.Run(async () =>
                     {
 
                         await Task.Delay(600);
@@ -74,7 +76,7 @@ namespace Device.Service
                         RecordWrite(true);
                         master.WriteMultipleRegisters(slaveId, startAddress, new ushort[] { 0 });
                     });
-                    
+
                     return true;
                 }
                 else
@@ -82,11 +84,11 @@ namespace Device.Service
 
             }
             catch (Exception ex)
-            { 
-               throw ex;
-            
+            {
+                throw ex;
+
             }
-          
+
         }
 
 
@@ -94,7 +96,7 @@ namespace Device.Service
 
         public int GetReadSpeed()
         {
-           
+
             return Convert.ToInt32(GetReadRate());
         }
         public int GetWriteSpeed()
@@ -108,7 +110,7 @@ namespace Device.Service
 
         public bool TryReconnect()
         {
-           
+
 
             return true;
         }
