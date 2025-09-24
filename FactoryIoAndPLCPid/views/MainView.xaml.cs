@@ -35,5 +35,14 @@ namespace FactoryIoAndPLCPid.views
                 catch { }
             }
         }
+
+        protected override void OnClosed(EventArgs e)
+        {
+          
+            base.OnClosed(e);
+            //关闭所有线程
+            Application.Current.Shutdown();
+        }
+
     }
 }

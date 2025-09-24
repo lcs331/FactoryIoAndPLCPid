@@ -12,8 +12,9 @@ using System.Windows;
 
 namespace FactoryIoAndPLCPid.ViewModels
 {
-    public class CommunicationConfigurationViewModel:BindableBase
+    public class CommunicationConfigurationViewModel:BindableBase,IDisposable
     {
+
         private readonly IGetSystemDataService _systemInfoService;
         private readonly IConfigurationService _configurationService;
         public ObservableCollection<string> IpAddresses { get; set; }
@@ -98,7 +99,7 @@ namespace FactoryIoAndPLCPid.ViewModels
             set { SetProperty(ref portName, value); }
         }
         private int HeartbeatErrorCount = 0;
-
+        private CancellationTokenSource _cts = new CancellationTokenSource();
 
         public CommunicationConfigurationViewModel(IGetSystemDataService systemInfoService,IConfigurationService configurationService)
         {
@@ -109,15 +110,19 @@ namespace FactoryIoAndPLCPid.ViewModels
             ConnectCommand = new DelegateCommand( ()=>
             {
                 IsConnected= _configurationService.ModbusTcpConnect(IpName, int.Parse(PortName));
+                Reconnect();
             }
             );
             DisconnectCommand = new DelegateCommand(() =>
             {
                 IsConnected = _configurationService.ModbusTcpDisconnect();
+                
             });
 
+          
 
 
+            //获取系统信息
             Task.Run(async () =>
            {
                while (true)
@@ -138,13 +143,14 @@ namespace FactoryIoAndPLCPid.ViewModels
                }
             
            });
+            //心跳检测
             Task.Run(async () =>
             {
-                while (true)
+                while (!_cts.Token.IsCancellationRequested)
                 {
                     try
                     {
-                        await Task.Delay(200);
+                        await Task.Delay(1000);
                         if (!IsConnected)
                             continue;
                         Heartbeat = _configurationService.ReadHearbeat();
@@ -157,10 +163,11 @@ namespace FactoryIoAndPLCPid.ViewModels
                         Debug.WriteLine(ex.Message);
                     }
                 }
-            });
+            }, _cts.Token);
+            //读写速率
             Task.Run(async () =>
             {
-                while (true)
+                while (!_cts.Token.IsCancellationRequested)
                 {
                     try
                     {
@@ -176,34 +183,76 @@ namespace FactoryIoAndPLCPid.ViewModels
                         Debug.WriteLine(ex.Message);
                     }
                 }
-            });
+            }, _cts.Token);
           
         }
 
         private void HearbeatChecked()
         {
-            if (!Heartbeat)
+            try
             {
-                HeartbeatErrorCount++;
-                if (HeartbeatErrorCount >= 13)
+                if (!Heartbeat)
                 {
-                    IsConnected = false;
-                    HeartbeatMessage = "心跳异常";
-                    throw new Exception("PLC Heartbeat Error");
+                    HeartbeatErrorCount++;
+                    if (HeartbeatErrorCount >= 13)
+                    {
+                        IsConnected = false;
+                        HeartbeatMessage = "心跳异常";
+                        throw new Exception("PLC Heartbeat Error");
+                    }
+                    else
+                    {
+                        HeartbeatMessage = "心跳正常";
+                    }
                 }
                 else
                 {
+                    HeartbeatErrorCount = 0;
                     HeartbeatMessage = "心跳正常";
                 }
             }
-            else
-            {
-                HeartbeatErrorCount = 0;
-                HeartbeatMessage = "心跳正常";
+            catch(Exception ex)
+            { 
+            
             }
+        
 
         }
+       
+        //断线重连
+        private  void Reconnect()
+        {
+            
+            Task.Run(async () =>
+            {
+                while (!_cts.Token.IsCancellationRequested)
+                {
+                    if (!IsConnected)
+                    {
+                        try
+                        {
+                            IsConnected = _configurationService.ModbusTcpConnect(IpName, int.Parse(PortName));
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("重连失败: " + ex.Message);
+                        }
+                    }
+                    else
+                    {
+                        await Task.Delay(1000);
+                    }
 
+                    await Task.Delay(2000, _cts.Token); // 避免CPU空转
+                }
+            }, _cts.Token);
+        }
+    
+
+        public void Dispose()
+        {
+            _cts.Cancel();
+        }
         //获取本机IP——保留不用
         //private void RefreshIpAddresses()
         //{

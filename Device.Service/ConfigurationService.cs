@@ -25,7 +25,15 @@ namespace Device.Service
 
             return ipAddress;
         }
+        public bool TryReconnect(string ip, int port)
+        {
+            if (!client.Connected)
+            {
+                ModbusTcpConnect(ip, port);
+            }
 
+            return true;
+        }
 
         public bool ReadHearbeat()
         {
@@ -33,10 +41,7 @@ namespace Device.Service
             if (master == null)
                 return false;
             if (client.Connected)
-            {
-                Task.Run(async () =>
-                {
-                    await Task.Delay(300);
+            {               
                     byte slaveId = 1;         // PLC Modbus Server 的 ID
                     ushort startAddress = 14; // 对应 DB3.DBW26 的 Modbus 地址
                     ushort numRegisters = 1;  // Int 占 1 个寄存器（注意：S7 Int 是 16 位）              
@@ -47,7 +52,7 @@ namespace Device.Service
                     else
                         RecordRead(false);
 
-                });
+               
                 return intValue == 1;
             }
             else
@@ -108,11 +113,5 @@ namespace Device.Service
             return Convert.ToInt32(GetTotalSuccessRate());
         }
 
-        public bool TryReconnect()
-        {
-
-
-            return true;
-        }
     }
 }

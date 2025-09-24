@@ -17,21 +17,29 @@ namespace Device.Service
 
         public bool ModbusTcpConnect(string ip, int port)
         {
+            try
+            {
+                client = new TcpClient(ip, port);
+                master = ModbusIpMaster.CreateIp(client);
+                byte slaveId = 1;         // PLC Modbus Server 的 ID
+                ushort startAddress = 12; // 对应 DB3.DBW24 的 Modbus 地址
+                ushort numRegisters = 1;  // Int 占 1 个寄存器（注意：S7 Int 是 16 位）
 
-            client = new TcpClient(ip, port);
-            master = ModbusIpMaster.CreateIp(client);
-            byte slaveId = 1;         // PLC Modbus Server 的 ID
-            ushort startAddress = 12; // 对应 DB3.DBW24 的 Modbus 地址
-            ushort numRegisters = 1;  // Int 占 1 个寄存器（注意：S7 Int 是 16 位）
-            
-            ushort[] result = master.ReadHoldingRegisters(slaveId, startAddress, numRegisters);
-            
-            short intValue = (short)result[0]; // 转换成有符号 Int16
-            if(intValue > 0)
-            RecordRead(true);
-            else
-            RecordRead(false);
-            return intValue > 0;
+                ushort[] result = master.ReadHoldingRegisters(slaveId, startAddress, numRegisters);
+
+                short intValue = (short)result[0]; // 转换成有符号 Int16
+                if (intValue > 0)
+                    RecordRead(true);
+                else
+                    RecordRead(false);
+                return intValue > 0;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return false;
+            }
+           
             
         }
 
@@ -47,6 +55,8 @@ namespace Device.Service
                 return false;
             }
         }
+
+     
         public static float ConvertRegistersToFloat(ushort[] registers, bool swapWords = true)
         {
             if (registers == null || registers.Length < 2)

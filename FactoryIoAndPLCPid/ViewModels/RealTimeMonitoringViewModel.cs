@@ -13,8 +13,9 @@ using System.Windows.Media;
 
 namespace FactoryIoAndPLCPid.ViewModels
 {
-    public class RealTimeMonitoringViewModel:BindableBase
+    public class RealTimeMonitoringViewModel:BindableBase,IDisposable
     {
+        private CancellationTokenSource _cts = new();
         private readonly IRealTimeMonitoringService realTimeMonitoringService;
         public ObservableCollection<PropertyCard> Cards { get; set; } = new ObservableCollection<PropertyCard>();
 
@@ -40,7 +41,7 @@ namespace FactoryIoAndPLCPid.ViewModels
             LineLegendItems.Add(new LineLegendItem { Name = "出水阀门", Color = Brushes.White });
             Task.Run(async () =>
             {
-                while (true)
+                while (!_cts.IsCancellationRequested)
                 {
                     try
                     {
@@ -63,11 +64,8 @@ namespace FactoryIoAndPLCPid.ViewModels
 
 
                     }
-                }
-             
-              
-              
-            });
+                }              
+            }, _cts.Token);
         }
 
         public void AddPoint(DeciveDataInfos inputdata)
@@ -157,6 +155,11 @@ namespace FactoryIoAndPLCPid.ViewModels
             });
 
             // 还可以继续把 StopInstruction、DeviceOnline 等属性加进来
+        }
+
+        public void Dispose()
+        {
+            _cts.Cancel();
         }
     }
 }

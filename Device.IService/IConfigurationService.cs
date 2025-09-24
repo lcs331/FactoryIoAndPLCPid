@@ -25,6 +25,6 @@ namespace Device.IService
         int GetSuccessRate();
 
         //尝试重新连接
-        bool TryReconnect();
+        bool TryReconnect(string ip, int port);
     }
 }

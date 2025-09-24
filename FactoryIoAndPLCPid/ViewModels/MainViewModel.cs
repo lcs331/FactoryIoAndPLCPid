@@ -41,13 +41,20 @@ namespace FactoryIoAndPLCPid.ViewModels
             };
             MaximizeORNormalCommand = new DelegateCommand<Window>(MaximizeORNormal);
             MinimizeCommand = new DelegateCommand<Window>(window => window.WindowState = WindowState.Minimized);
-            CloseCommand = new DelegateCommand<Window>(window => window.Close());
+            CloseCommand = new DelegateCommand<Window>(window =>
+            {
+                window.Close();
+                timer.Stop();
+            }
+            );
             _regionManager = regionManager;
             NavigateCommand = new DelegateCommand<string>(
                 viewName=> _regionManager.RequestNavigate("ContentRegion", viewName),
                 viewName=>!string.IsNullOrEmpty(viewName)
                 );
         }
+
+       
 
         private void MaximizeORNormal(Window window)
         {
