@@ -45,6 +45,7 @@ namespace Device.Service
 
         public bool ModbusTcpDisconnect()
         {
+            if (master== null) return true;
             if (client.Connected)
             {
                 client.Close();

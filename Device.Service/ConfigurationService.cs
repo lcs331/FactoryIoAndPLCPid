@@ -64,13 +64,14 @@ namespace Device.Service
         {
             try
             {
+                if (master == null)
+                    return false;
                 if (client.Connected)
                 {
                     byte slaveId = 1;         // PLC Modbus Server 的 ID
                     ushort startAddress = 13; // 对应 DB3.DBW26 的 Modbus 地址
                                               // Int 占 1 个寄存器（注意：S7 Int 是 16 位）
-                    if (master == null)
-                        return false;
+                   
                     Task.Run(async () =>
                     {
 
