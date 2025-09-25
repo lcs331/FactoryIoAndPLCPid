@@ -11,9 +11,9 @@ namespace Device.IService
 
         bool ModbusTcpDisconnect();
 
-        bool ReadHearbeat();
+        Task<bool> ReadHearbeat();
 
-        bool WriteHearbeat();
+        Task<bool> WriteHearbeat();
 
         //获取读速率
         int GetReadSpeed();

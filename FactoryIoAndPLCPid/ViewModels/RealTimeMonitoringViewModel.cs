@@ -1,6 +1,7 @@
 ﻿using Device.IService;
 using FactoryIoAndPLCPid.Models;
 using LiveCharts;
+using Microsoft.Extensions.Logging;
 using Models;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ namespace FactoryIoAndPLCPid.ViewModels
 {
     public class RealTimeMonitoringViewModel:BindableBase,IDisposable
     {
+        private readonly ILogger<RealTimeMonitoringViewModel> _logger;
         private CancellationTokenSource _cts = new();
         private readonly IRealTimeMonitoringService realTimeMonitoringService;
         public ObservableCollection<PropertyCard> Cards { get; set; } = new ObservableCollection<PropertyCard>();
@@ -31,8 +33,9 @@ namespace FactoryIoAndPLCPid.ViewModels
         public ObservableCollection<LineLegendItem> LineLegendItems { get; set; } = new ObservableCollection<LineLegendItem>();
 
 
-        public RealTimeMonitoringViewModel(IRealTimeMonitoringService realTimeService)
+        public RealTimeMonitoringViewModel(ILogger<RealTimeMonitoringViewModel> logger, IRealTimeMonitoringService realTimeService)
         {
+            _logger=logger;
             realTimeMonitoringService = realTimeService;
             // 图例颜色
             LineLegendItems.Add(new LineLegendItem { Name = "水位", Color = Brushes.LightBlue });
@@ -61,7 +64,7 @@ namespace FactoryIoAndPLCPid.ViewModels
                     }
                     catch (Exception ex)
                     {
-
+                        _logger.LogError(ex.Message, "Sourse of RealTimeMonitoringViewModel");
 
                     }
                 }              

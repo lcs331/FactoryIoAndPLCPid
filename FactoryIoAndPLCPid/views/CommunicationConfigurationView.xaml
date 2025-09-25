@@ -281,7 +281,7 @@
                                VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     <controls:HeartbeatUser Grid.Row="2" Grid.Column="1" 
                         Height="80" 
-                        IsBeating="{Binding Heartbeat}"                    
+                        IsBeating="{Binding HearbeatEnabled}"                    
                         TheBackground="Red"
                         Width="96" Margin="0" Grid.RowSpan="1">
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,7 @@ namespace FactoryIoAndPLCPid.ViewModels
     public class MainViewModel:BindableBase
     {
 
+        private readonly ILogger<MainViewModel> _logger;
         public System.Timers.Timer timer=new System.Timers.Timer(1000);
 
         private string _time=DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
@@ -28,30 +30,40 @@ namespace FactoryIoAndPLCPid.ViewModels
         public DelegateCommand<string> NavigateCommand { get; private set; } 
 
         private readonly IRegionManager _regionManager;
-        public MainViewModel(IRegionManager regionManager)
+        public MainViewModel(ILogger<MainViewModel> logger, IRegionManager regionManager)
         {
-            timer.Start();
-            timer.Elapsed += (sender, e) =>
+            _logger= logger;
+            _logger.LogInformation("APP is starting");
+            try
             {
-                Application.Current.Dispatcher.Invoke(() =>
+                timer.Start();
+                timer.Elapsed += (sender, e) =>
                 {
-                    Time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                });
-            
-            };
-            MaximizeORNormalCommand = new DelegateCommand<Window>(MaximizeORNormal);
-            MinimizeCommand = new DelegateCommand<Window>(window => window.WindowState = WindowState.Minimized);
-            CloseCommand = new DelegateCommand<Window>(window =>
-            {
-                window.Close();
-                timer.Stop();
-            }
-            );
-            _regionManager = regionManager;
-            NavigateCommand = new DelegateCommand<string>(
-                viewName=> _regionManager.RequestNavigate("ContentRegion", viewName),
-                viewName=>!string.IsNullOrEmpty(viewName)
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        Time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                    });
+
+                };
+                MaximizeORNormalCommand = new DelegateCommand<Window>(MaximizeORNormal);
+                MinimizeCommand = new DelegateCommand<Window>(window => window.WindowState = WindowState.Minimized);
+                CloseCommand = new DelegateCommand<Window>(window =>
+                {
+                    window.Close();
+                    timer.Stop();
+                }
                 );
+                _regionManager = regionManager;
+                NavigateCommand = new DelegateCommand<string>(
+                    viewName => _regionManager.RequestNavigate("ContentRegion", viewName),
+                    viewName => !string.IsNullOrEmpty(viewName)
+                    );
+            }
+            catch (Exception ex)
+            {
+             _logger.LogError(ex.Message,"Sourse of the MainViewModel");
+            }
+          
         }
 
        

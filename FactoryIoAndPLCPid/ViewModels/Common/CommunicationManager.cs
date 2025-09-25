@@ -1,4 +1,5 @@
 ﻿using Device.IService;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,6 +11,7 @@ namespace FactoryIoAndPLCPid.ViewModels.Common
 {
     public class CommunicationManager : IDisposable
     {
+        private readonly ILogger<CommunicationManager> _logger;
         private readonly IConfigurationService _config;
         private readonly object _lock = new();
         private CancellationTokenSource _cts;
@@ -23,12 +25,14 @@ namespace FactoryIoAndPLCPid.ViewModels.Common
         public event Action<bool> HeartbeatChanged;
         public event Action<int, int, double> StatsUpdated; // read, write, successRate
         public bool IsConnected { get; private set; }
-
-        public CommunicationManager(IConfigurationService config)
+        bool hb = false;
+        bool ok = false;
+        public CommunicationManager(ILogger<CommunicationManager> logger, IConfigurationService config)
         {
+            _logger = logger;
+
             _config = config ?? throw new ArgumentNullException(nameof(config));
         }
-
         public void Start(string ip, int port, bool autoReconnect = true)
         {
             lock (_lock)
@@ -48,6 +52,7 @@ namespace FactoryIoAndPLCPid.ViewModels.Common
             Task t;
             lock (_lock)
             {
+                HeartbeatChanged.Invoke(false);
                 c = _cts;
                 t = _backgroundTask;
                 _cts = null;
@@ -56,23 +61,48 @@ namespace FactoryIoAndPLCPid.ViewModels.Common
             if (c != null)
             {
                 c.Cancel();
-                try { await t.ConfigureAwait(false); } catch { /* swallow when cancelling */ }
+                try { await t.ConfigureAwait(false); } catch (Exception ex) { _logger.LogError(ex, "Source of cancellation exception"); }
                 c.Dispose();
             }
         }
 
-        public async Task<bool> ConnectAsync(string ip, int port)
+        public async Task<bool> ConnectAsync(string ip, int port, int timeoutMs = 3000)
         {
-            // Wrap synchronous connect in Task.Run to avoid blocking caller
-            bool ok = await Task.Run(() => _config.ModbusTcpConnect(ip, port));
-            SetConnected(ok);
-            return ok;
+            try
+            {
+                var task = Task.Run(() => _config.ModbusTcpConnect(ip, port));
+                if (await Task.WhenAny(task, Task.Delay(timeoutMs)) == task)
+                {
+                    // 同步方法完成
+                    bool ok = task.Result;
+                    SetConnected(ok);
+                    return ok;
+                }
+                else
+                {
+                    // 超时
+                    _logger.LogWarning("Connect timeout");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Connect error");
+                return false;
+            }
         }
 
         public async Task DisconnectAsync()
         {
-            await Task.Run(() => _config.ModbusTcpDisconnect());
-            SetConnected(false);
+            try
+            {
+                await Task.Run(() => _config.ModbusTcpDisconnect());
+                SetConnected(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Disconnect error");
+            }
         }
 
         private void SetConnected(bool connected)
@@ -90,29 +120,37 @@ namespace FactoryIoAndPLCPid.ViewModels.Common
             {
                 try
                 {
+
                     if (IsConnected)
                     {
                         // heartbeat
-                        bool hb = false;
+
                         try
                         {
                             hb = await Task.Run(() => _config.ReadHearbeat(), token);
                         }
-                        catch (Exception ex) { Debug.WriteLine("Heartbeat read error: " + ex.Message); }
+                        catch (ObjectDisposedException o)
+                        { 
+                           _logger.LogError(o.Message, "Source of heartbeat exception");
+                        }
+                        catch (Exception ex)
+                        { _logger.LogError(ex, "Heartbeat read error"); }
 
-                        HeartbeatChanged?.Invoke(hb);
+
                         if (!hb)
                         {
                             heartbeatErrors++;
                             if (heartbeatErrors >= 5)
                             {
                                 // force disconnect and allow reconnect loop to handle retry
+                                HeartbeatChanged?.Invoke(false);
                                 await DisconnectAsync();
                                 heartbeatErrors = 0;
                             }
                         }
                         else
                         {
+                            HeartbeatChanged?.Invoke(hb);
                             heartbeatErrors = 0;
                         }
 
@@ -124,10 +162,16 @@ namespace FactoryIoAndPLCPid.ViewModels.Common
                             double s = await Task.Run(() => _config.GetSuccessRate(), token);
                             StatsUpdated?.Invoke(r, w, s);
                         }
-                        catch (Exception ex) { Debug.WriteLine("Stats error: " + ex.Message); }
+                        catch (Exception ex)
+                        { _logger.LogError(ex, "Stats update error"); }
 
                         // optionally write heartbeat (fire-and-forget is ok, but catch)
-                        try { await Task.Run(() => _config.WriteHearbeat(), token); } catch { }
+
+                        
+                            try { await Task.Run(() => _config.WriteHearbeat(), token); }
+                            catch (ObjectDisposedException) { }
+                            catch (Exception ex)
+                            { _logger.LogError(ex.Message, "Source of write heartbeat exception"); }
 
                         await Task.Delay(600, token);
                     }
@@ -135,14 +179,14 @@ namespace FactoryIoAndPLCPid.ViewModels.Common
                     {
                         if (_autoReconnect)
                         {
-                            bool ok = false;
+
                             try
                             {
                                 ok = await Task.Run(() => _config.ModbusTcpConnect(_ip, _port), token);
                             }
                             catch (Exception ex)
                             {
-                                Debug.WriteLine("Reconnect attempt failed: " + ex.Message);
+                                _logger.LogError(ex, "Reconnect error");
                             }
 
                             SetConnected(ok);
@@ -164,10 +208,11 @@ namespace FactoryIoAndPLCPid.ViewModels.Common
                         }
                     }
                 }
-                catch (OperationCanceledException) { break; }
+                catch (OperationCanceledException)
+                { break; }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine("Background loop exception: " + ex.Message);
+                    _logger.LogError(ex, "Unexpected error in background loop");
                     await Task.Delay(1000, token); // avoid tight loop on unexpected errors
                 }
             }
@@ -181,7 +226,8 @@ namespace FactoryIoAndPLCPid.ViewModels.Common
                 _cts?.Cancel();
                 _cts?.Dispose();
             }
-            catch { }
+            catch (Exception ex)
+            { _logger.LogError(ex.Message, "Error disposing CommunicationManager"); }
         }
 
 

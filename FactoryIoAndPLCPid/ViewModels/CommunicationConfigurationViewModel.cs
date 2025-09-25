@@ -1,6 +1,7 @@
 ﻿using Device.IService;
 using Device.Service;
 using FactoryIoAndPLCPid.ViewModels.Common;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,10 +16,12 @@ namespace FactoryIoAndPLCPid.ViewModels
 {
     public class CommunicationConfigurationViewModel:BindableBase,IDisposable
     {
-
+        private readonly ILogger<CommunicationManager> _commLogger;
+        private readonly ILogger<CommunicationConfigurationViewModel> _logger;
         private readonly IGetSystemDataService _systemInfo;
         private readonly CommunicationManager _comm;
         private readonly SynchronizationContext _uiContext;
+        private static readonly object _lock = new object();
 
         public AsyncDelegateCommand ConnectCommand { get; }
         public AsyncDelegateCommand DisconnectCommand { get; }
@@ -37,6 +40,9 @@ namespace FactoryIoAndPLCPid.ViewModels
         private string _heartbeatMessage = "无心跳";
         public string HeartbeatMessage { get => _heartbeatMessage; set => SetProperty(ref _heartbeatMessage, value); }
 
+        private bool _hearbeatEnabled;
+        public bool HearbeatEnabled { get => _hearbeatEnabled; set => SetProperty(ref _hearbeatEnabled, value); }
+
         // stats
         private string _readSpeedRate = "0次/s";
         public string ReadSpeedRate { get => _readSpeedRate; set => SetProperty(ref _readSpeedRate, value); }
@@ -45,21 +51,38 @@ namespace FactoryIoAndPLCPid.ViewModels
         private string _successRate = "0%";
         public string ReadAndWriteSuccessRate { get => _successRate; set => SetProperty(ref _successRate, value); }
 
-        public CommunicationConfigurationViewModel(IGetSystemDataService systemInfoService, IConfigurationService configurationService)
+        private double _cpuUsage = 0;
+        public double CpuUsage { get => _cpuUsage; set => SetProperty(ref _cpuUsage, value); }
+        private double _memoryUsage = 0;
+        public double MemoryUsage { get => _memoryUsage; set => SetProperty(ref _memoryUsage, value); }
+
+
+        public CommunicationConfigurationViewModel(ILogger<CommunicationManager> CommunicationManagerlogger ,ILogger<CommunicationConfigurationViewModel> logger, IGetSystemDataService systemInfoService, IConfigurationService configurationService)
         {
+            //log
+            _logger=logger;
+            _commLogger = CommunicationManagerlogger;
             _systemInfo = systemInfoService;
             _uiContext = SynchronizationContext.Current ?? new SynchronizationContext();
-            _comm = new CommunicationManager(configurationService);
+            _comm = new CommunicationManager(_commLogger, configurationService);
 
             // subscribe
-            _comm.ConnectionChanged += (connected) => _uiContext.Post(_ => IsConnected = connected, null);
-            _comm.HeartbeatChanged += (hb) => _uiContext.Post(_ => HeartbeatMessage = hb ? "心跳正常" : "心跳异常", null);
-            _comm.StatsUpdated += (r, w, s) => _uiContext.Post(_ =>
+            try
             {
-                ReadSpeedRate = $"{r}次/s";
-                WriteSpeedRate = $"{w}次/s";
-                ReadAndWriteSuccessRate = $"{s}%";
-            }, null);
+                _comm.ConnectionChanged += (connected) => _uiContext.Post(_ => IsConnected = connected, null);
+                _comm.HeartbeatChanged += (hb) => _uiContext.Post(_ => UpdateHearbeat(hb), null);
+                _comm.StatsUpdated += (r, w, s) => _uiContext.Post(_ =>
+                {
+                    ReadSpeedRate = $"{r}次/s";
+                    WriteSpeedRate = $"{w}次/s";
+                    ReadAndWriteSuccessRate = $"{s}%";
+                }, null);
+            }
+            catch(Exception ex)
+            {
+              _logger.LogError(ex.Message,"Sourse of CommunicationConfigurationViewModel");
+            }
+           
 
             // commands (use Async handlers if Prism supports FromAsyncHandler)
             ConnectCommand =new AsyncDelegateCommand(async () =>
@@ -81,17 +104,30 @@ namespace FactoryIoAndPLCPid.ViewModels
             {
                 try
                 {
-                    var cpu = _systemInfo.GetCpu();
-                    var mem = _systemInfo.GetMemory();
-                    _uiContext.Post(_ =>
+                    lock (_lock)
                     {
-                        // your CpuUsage / MemoryUsage properties (not shown) set here
-                    }, null);
+                        var cpu = _systemInfo.GetCpu();
+                        var mem = _systemInfo.GetMemory();
+                        _uiContext.Post(_ =>
+                        {
+                            CpuUsage = cpu;
+                            MemoryUsage = mem;
+                          
+                        }, null);
+                    }
+                   
                 }
-                catch { /* log */ }
+                catch(Exception ex) { _logger.LogError(ex.Message,"Sourse of CommunicationConfigurationViewModel"); }
             };
             timer.Start();
         }
+
+        private void UpdateHearbeat(bool hb)
+        {
+            HeartbeatMessage = hb ? "心跳正常" : "心跳异常";
+            HearbeatEnabled = hb;
+        }
+
 
         public void Dispose()
         {

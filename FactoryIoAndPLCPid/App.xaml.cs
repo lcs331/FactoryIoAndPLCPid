@@ -1,11 +1,17 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Windows;
-using Device.IService;
+﻿using Device.IService;
 using Device.Service;
 using FactoryIoAndPLCPid.ViewModels;
+using FactoryIoAndPLCPid.ViewModels.Common;
 using FactoryIoAndPLCPid.views;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using NLog;
+using NLog.Config;
+using NLog.Extensions.Logging;
 using Prism.Ioc;
+using System.Configuration;
+using System.Data;
+using System.Windows;
 namespace FactoryIoAndPLCPid
 {
     /// <summary>
@@ -13,6 +19,7 @@ namespace FactoryIoAndPLCPid
     /// </summary>
     public partial class App : PrismApplication
     {
+        private ILogger<App> _logger;
         protected override Window CreateShell()
         {
            return Container.Resolve<MainView>();
@@ -30,7 +37,32 @@ namespace FactoryIoAndPLCPid
         }
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
+
+
             //注册
+
+            // 1. 从 NLog.config 加载配置
+            var config = new XmlLoggingConfiguration("newNLog.config");
+            LogManager.Configuration = config;
+
+            // 2. 创建 ServiceCollection
+            var services = new ServiceCollection();
+            services.AddLogging(loggingBuilder =>
+            {
+                loggingBuilder.ClearProviders();
+                loggingBuilder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+                loggingBuilder.AddNLog(config);
+            });
+
+            // 3. 构建 ServiceProvider
+            var serviceProvider = services.BuildServiceProvider();
+
+            // 4. 把 LoggerFactory 和 ILogger<T> 注册进 Prism 容器
+            var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+            containerRegistry.RegisterInstance(loggerFactory);
+            containerRegistry.Register(typeof(ILogger<>), typeof(Logger<>));
+
+
             containerRegistry.Register<IGetSystemDataService, GetSystemDataService>();
             containerRegistry.Register<IConfigurationService, ConfigurationService>();
             containerRegistry.Register<IRealTimeMonitoringService, RealTimeMonitoringService>();
@@ -38,21 +70,44 @@ namespace FactoryIoAndPLCPid
             containerRegistry.RegisterForNavigation<ErrorAndLogView>();
             containerRegistry.RegisterForNavigation<HistoricalDataView>();
             containerRegistry.RegisterForNavigation<RealTimeMonitoringView>();
+
+
+
         }
 
         protected override void OnInitialized()
         {
             base.OnInitialized();
-
+            _logger = Container.Resolve<ILogger<App>>(); // 解析 logger
+            RegisterGlobalExceptionHandlers();
             var resourceManager= Container.Resolve<IRegionManager>();
-            //resourceManager.RequestNavigate("ContentRegion", "RealTimeMonitoringView");
-            //resourceManager.RequestNavigate("ContentRegion", "HistoricalDataView");
-            //resourceManager.RequestNavigate("ContentRegion", "ErrorAndLogView");
             resourceManager.RequestNavigate("ContentRegion", "CommunicationConfigurationView");
 
         }
 
+        private void RegisterGlobalExceptionHandlers()
+        {
+            // UI 线程异常
+            Application.Current.DispatcherUnhandledException += (s, e) =>
+            {
+                _logger.LogError(e.Exception, "Dispatcher Thread Exception");
+                e.Handled = true;
+            };
 
+            // 非 UI 线程异常
+            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            {
+                if (e.ExceptionObject is Exception ex)
+                    _logger.LogError(ex, "AppDomain Unhandled Exception");
+            };
+
+            // Task 异步未观察到异常
+            TaskScheduler.UnobservedTaskException += (s, e) =>
+            {
+                _logger.LogError(e.Exception, "Unobserved Task Exception");
+                e.SetObserved();
+            };
+        }
     }
 
 }
