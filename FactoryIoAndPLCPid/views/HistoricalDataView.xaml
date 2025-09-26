@@ -4,9 +4,136 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:FactoryIoAndPLCPid.views"
+             xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+             xmlns:prism="http://prismlibrary.com/"
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="1250">
-    <Grid Background="AliceBlue">
-            <TextBlock Text="Historical Data View" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+    <UserControl.Resources>
+        <!-- 阴影效果 -->
+        <DropShadowEffect x:Key="DropShadow"
+                    Color="Black"
+                    BlurRadius="8"
+                    ShadowDepth="2"
+                    Opacity="0.2"/>
+        <!-- 基础按钮样式 -->
+        <Style x:Key="ModernButton" TargetType="Button">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <!-- 默认绿色 -->
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True"
+                                Effect="{StaticResource DropShadow}">
+                            <Border.Background>
+                                <!-- 径向渐变，中心亮，四周暗 -->
+                                <RadialGradientBrush GradientOrigin="0.5,0.5" Center="0.5,0.5" RadiusX="0.8" RadiusY="0.8">
+                                    <GradientStop Color="#3D5AFE" Offset="0.0"/>
+                                    <!-- 中心亮蓝 -->
+                                    <GradientStop Color="#203551" Offset="1.0"/>
+                                    <!-- 边缘深蓝 -->
+                                </RadialGradientBrush>
+                            </Border.Background>
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <!-- 鼠标悬停 -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#66BB6A"/>
+                            </Trigger>
+                            <!-- 按下 -->
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#388E3C"/>
+                            </Trigger>
+                            <!-- 禁用 -->
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#BDBDBD"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+    </UserControl.Resources>
+
+
+
+    <Grid Background="#7AFFFFFF">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60"/>
+            <RowDefinition  />
+        </Grid.RowDefinitions>
+        <Border Background="#8FFFFFFF"
+        CornerRadius="8"
+        BorderBrush="#3D5AFE"
+        BorderThickness="1"
+      
+         Height="45"
+        SnapsToDevicePixels="True">
+            <DockPanel>
+                <!-- 左边标题 -->
+                <TextBlock Text="功能操作"
+               
+                   FontSize="16"
+                   FontWeight="Bold"
+                   Foreground="#3D5AFE"
+                   VerticalAlignment="Center"
+                   Margin="10,0,20,0"
+                   DockPanel.Dock="Left"/>
+                <!-- 按钮区 -->
+                <StackPanel Orientation="Horizontal">              
+                    <Button Style="{StaticResource ModernButton}" Height="30"  Width="80" Content="查询" Command="{Binding QueryCommand}"/>
+                    <Button Style="{StaticResource ModernButton}" Height="30"  Width="80" Content="首页" Command="{Binding QueryCommand}"/>
+                    <Button Style="{StaticResource ModernButton}" Height="30"  Width="80" Content="上一页" Command="{Binding QueryCommand}"/>
+                    <Button Style="{StaticResource ModernButton}" Height="30"  Width="80" Content="下一页" Command="{Binding QueryCommand}"/>
+                    <Button Style="{StaticResource ModernButton}" Height="30"  Width="80" Content="尾页" Command="{Binding QueryCommand}"/>
+                    <Button Style="{StaticResource ModernButton}" Height="30"  Width="80" Content="转到" Command="{Binding QueryCommand}"/>
+                    <TextBox Width="100" Margin="10,0,0,0"
+                     Style="{StaticResource CapsuleTextBoxA}"
+                             Background="White" Height="35"
+                     Text="{Binding SearchText, Mode=TwoWay}"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+        <Grid Grid.Row="1" >
+            <!-- 内容区域 -->
+            <Grid Margin="20" >
+                <!-- 表格 -->
+                <Border Background="#4AFFFFFF" CornerRadius="8" Padding="10">
+                    <!-- DataGrid 显示设备数据 -->
+                    <DataGrid ItemsSource="{Binding DeviceDataHistory}" Background="#8AFFFFFF"
+                             AutoGenerateColumns="False"
+                             CanUserAddRows="False"
+                             IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="设备启动" Binding="{Binding DeviceStart}" Width="1*"/>
+                            <DataGridTextColumn Header="错误状态" Binding="{Binding ErrorState}" Width="1*"/>
+                            <DataGridTextColumn Header="设备水位" Binding="{Binding EquipmentWaterLevel}" Width="1*"/>
+                            <DataGridTextColumn Header="出水速率" Binding="{Binding WaterOutflowRate}" Width="1*"/>
+                            <DataGridTextColumn Header="启动指示" Binding="{Binding StartInstruction}" Width="1*"/>
+                            <DataGridTextColumn Header="停止指示" Binding="{Binding StopInstruction}" Width="1*"/>
+                            <DataGridTextColumn Header="进水阀门" Binding="{Binding WaterInletValve}" Width="1*"/>
+                            <DataGridTextColumn Header="出水阀门" Binding="{Binding WaterOutletValve}" Width="1*"/>
+                            <DataGridTextColumn Header="设备在线" Binding="{Binding DeviceOnline}" Width="1*"/>
+                            <DataGridTextColumn Header="时间戳" Binding="{Binding Timestamp}" Width="1*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+            </Grid>
+        </Grid>
     </Grid>
 </UserControl>

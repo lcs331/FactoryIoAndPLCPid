@@ -37,10 +37,7 @@ namespace FactoryIoAndPLCPid
         }
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
-
-
             //注册
-
             // 1. 从 NLog.config 加载配置
             var config = new XmlLoggingConfiguration("newNLog.config");
             LogManager.Configuration = config;
@@ -62,7 +59,7 @@ namespace FactoryIoAndPLCPid
             containerRegistry.RegisterInstance(loggerFactory);
             containerRegistry.Register(typeof(ILogger<>), typeof(Logger<>));
 
-
+            containerRegistry.Register<IMySQLDataService, MySQLDataService>();
             containerRegistry.Register<IGetSystemDataService, GetSystemDataService>();
             containerRegistry.Register<IConfigurationService, ConfigurationService>();
             containerRegistry.Register<IRealTimeMonitoringService, RealTimeMonitoringService>();

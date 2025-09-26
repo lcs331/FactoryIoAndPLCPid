@@ -12,9 +12,9 @@ namespace Device.Service
 {
     public class RealTimeMonitoringService : ModbusBase,IRealTimeMonitoringService
     {
-        public DeciveDataInfos? GetDeciveDataInfos()
+        public DeviceDataInfos? GetDeciveDataInfos()
         {
-            var data = new DeciveDataInfos();
+            var data = new DeviceDataInfos();
 
             if (client!=null)
             {
@@ -24,7 +24,7 @@ namespace Device.Service
                     return null;
                 byte slaveId = 1;
                 data.DeviceStart = master.ReadHoldingRegisters(slaveId, 0, 1)[0];
-                data.WaterOutflowEate = ConvertRegistersToFloat(master.ReadHoldingRegisters(slaveId, 1, 2));
+                data.WaterOutflowRate = ConvertRegistersToFloat(master.ReadHoldingRegisters(slaveId, 1, 2));
                 data.EquipmentWaterLevel = ConvertRegistersToFloat(master.ReadHoldingRegisters(slaveId, 3, 2));
                 data.ErrorState = master.ReadHoldingRegisters(slaveId, 5, 1)[0];
                 data.StopInstruction = master.ReadHoldingRegisters(slaveId, 6, 1)[0];

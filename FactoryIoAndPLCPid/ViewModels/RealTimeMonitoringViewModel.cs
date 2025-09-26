@@ -1,4 +1,5 @@
 ﻿using Device.IService;
+using Device.Service;
 using FactoryIoAndPLCPid.Models;
 using LiveCharts;
 using Microsoft.Extensions.Logging;
@@ -16,12 +17,16 @@ namespace FactoryIoAndPLCPid.ViewModels
 {
     public class RealTimeMonitoringViewModel:BindableBase,IDisposable
     {
-        private readonly ILogger<RealTimeMonitoringViewModel> _logger;
+        
         private CancellationTokenSource _cts = new();
+        private readonly ILogger<RealTimeMonitoringViewModel> _logger;
         private readonly IRealTimeMonitoringService realTimeMonitoringService;
+        private readonly IMySQLDataService _mySQLDataService;
         public ObservableCollection<PropertyCard> Cards { get; set; } = new ObservableCollection<PropertyCard>();
 
-        public DeciveDataInfos? CurrentDevice { get; set; }
+        public DeviceDataInfos? CurrentDevice { get; set; }
+
+        private DeviceDataInfos? _lastDeviceData;
 
         public List<string> XLabels { get; set; } = new List<string>();
 
@@ -32,11 +37,20 @@ namespace FactoryIoAndPLCPid.ViewModels
 
         public ObservableCollection<LineLegendItem> LineLegendItems { get; set; } = new ObservableCollection<LineLegendItem>();
 
+        private string message="等待设备数据...";
+        public string Message
+        {
+            get { return message; }
+            set { SetProperty(ref message, value); }
+        }
 
-        public RealTimeMonitoringViewModel(ILogger<RealTimeMonitoringViewModel> logger, IRealTimeMonitoringService realTimeService)
+
+        public RealTimeMonitoringViewModel(IMySQLDataService mySQLDataService, ILogger<RealTimeMonitoringViewModel> logger, IRealTimeMonitoringService realTimeService)
         {
             _logger=logger;
             realTimeMonitoringService = realTimeService;
+            _mySQLDataService = mySQLDataService;
+            _cts = new CancellationTokenSource();
             // 图例颜色
             LineLegendItems.Add(new LineLegendItem { Name = "水位", Color = Brushes.LightBlue });
             LineLegendItems.Add(new LineLegendItem { Name = "出水速率", Color = Brushes.Orange });
@@ -53,12 +67,14 @@ namespace FactoryIoAndPLCPid.ViewModels
                         if (de != null)
                         {
                             CurrentDevice = de;
-                            Application.Current.Dispatcher.Invoke(() =>
+                            await Application.Current.Dispatcher.BeginInvoke( async () =>
                             {
-                                LoadDeviceData(de);// 转成卡片集合
+                                LoadDeviceData(de);// 转成卡片集合                            
                                 AddPoint(de);// 加入到图表中
+                              
                             });
 
+                            _lastDeviceData = de;
                         }
                         await Task.Delay(1000);
                     }
@@ -69,16 +85,47 @@ namespace FactoryIoAndPLCPid.ViewModels
                     }
                 }              
             }, _cts.Token);
+
+            Task.Run(async () =>
+            {
+                while (!_cts.IsCancellationRequested)
+                {
+                    try
+                    {
+                        if (_lastDeviceData != null
+                            && _mySQLDataService!= null
+                            && _lastDeviceData.StartInstruction == 1
+                            && _lastDeviceData.StopInstruction == 0
+                            && _lastDeviceData.DeviceStart == 1)
+                        {
+                            await _mySQLDataService.InsertDeviceData(_lastDeviceData);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Database insert failed");
+                    }
+
+                    await Task.Delay(3000); // 每3秒执行一次(测试)
+                }
+            }, _cts.Token);
+
+
+
         }
 
-        public void AddPoint(DeciveDataInfos inputdata)
+        public void AddPoint(DeviceDataInfos inputdata)
         {
             PropertyLiveChats data = new PropertyLiveChats();
             // 赋值
             data.WaterLevel=inputdata.EquipmentWaterLevel;
-            data.OutflowRate = inputdata.WaterOutflowEate;
+            data.OutflowRate = inputdata.WaterOutflowRate;
             data.OutletValve = inputdata.WaterOutletValve;
             data.InletValve = inputdata.WaterInletValve;
+            if (inputdata.EquipmentWaterLevel > 0)
+            {
+                Message = "设备正常运行..";
+            }
             // 时间戳
             XLabels.Add(data.Timestamp.ToString("HH:mm:ss"));
             // 值
@@ -86,7 +133,7 @@ namespace FactoryIoAndPLCPid.ViewModels
             OutflowValues.Add(data.OutflowRate);
             InletValveValues.Add(data.InletValve);
             OutletValveValues.Add(data.OutletValve);
-           
+            
             // 控制最多显示100个点
             if (XLabels.Count > 100)
             {
@@ -99,8 +146,9 @@ namespace FactoryIoAndPLCPid.ViewModels
         }
 
 
-        public void LoadDeviceData(DeciveDataInfos data)
+        public  void LoadDeviceData(DeviceDataInfos data)
         {
+                  
             Cards.Clear();
 
             Cards.Add(new PropertyCard
@@ -121,7 +169,7 @@ namespace FactoryIoAndPLCPid.ViewModels
             {
                 Title = "出水速率",
                 Description = "L/s",
-                Value = data.WaterOutflowEate
+                Value = data.WaterOutflowRate
             });
             Cards.Add(new PropertyCard
             {
@@ -147,7 +195,7 @@ namespace FactoryIoAndPLCPid.ViewModels
             {
                 Title = "出水速率",
                 Description = "L/s",
-                Value = data.WaterOutflowEate
+                Value = data.WaterOutflowRate
             });
 
             Cards.Add(new PropertyCard
@@ -156,9 +204,9 @@ namespace FactoryIoAndPLCPid.ViewModels
                 Description = "阀门开度 %",
                 Value = data.WaterInletValve
             });
-
-            // 还可以继续把 StopInstruction、DeviceOnline 等属性加进来
+         
         }
+
 
         public void Dispose()
         {

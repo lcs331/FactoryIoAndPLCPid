@@ -9,7 +9,7 @@ namespace Models
 {
 
 
-    public class DeciveDataInfos
+    public class DeviceDataInfos
     {
         public int DeviceStart {  get; set; }
         public int ErrorState { get; set; }
@@ -20,7 +20,7 @@ namespace Models
         /// <summary>
         /// 出水速率
         /// </summary>
-        public float WaterOutflowEate {  get; set; }
+        public float WaterOutflowRate {  get; set; }
         public int StartInstruction { get; set; }
         public int StopInstruction{ get; set; }
 

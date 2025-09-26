@@ -7,6 +7,6 @@
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="1250">
     <Grid Background="AliceBlue">
-            <TextBlock Text="Error and Log View" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+       
     </Grid>
 </UserControl>

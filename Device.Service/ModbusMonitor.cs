@@ -26,21 +26,27 @@ namespace Device.Service
         }
 
         // 记录一次读请求
+     
         public void RecordRead(bool isSuccess)
         {
+         
+            
             Interlocked.Increment(ref totalReadCount);
             if (isSuccess) Interlocked.Increment(ref successReadCount);
             if(successReadCount>5000)
                 successReadCount=0;
+            
         }
 
         // 记录一次写请求
         public void RecordWrite(bool isSuccess)
         {
+                 
             Interlocked.Increment(ref totalWriteCount);
             if (isSuccess) Interlocked.Increment(ref successWriteCount);
             if (successWriteCount > 5000)
-                successWriteCount = 0;
+                successWriteCount = 0; 
+            
         }
 
         // 读速率（次/秒）

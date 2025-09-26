@@ -10,6 +10,6 @@ namespace Device.IService
 {
     public interface IRealTimeMonitoringService
     {
-        DeciveDataInfos? GetDeciveDataInfos();
+        DeviceDataInfos? GetDeciveDataInfos();
     }
 }
