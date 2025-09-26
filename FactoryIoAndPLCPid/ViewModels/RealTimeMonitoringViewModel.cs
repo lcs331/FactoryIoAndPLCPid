@@ -181,13 +181,13 @@ namespace FactoryIoAndPLCPid.ViewModels
             Cards.Add(new PropertyCard
             {
                 Title = "停止指示",
-                Description = "1 表示停止，0 表示运行",
+                Description = "1 表示停止",
                 Value = data.StopInstruction
             });
             Cards.Add(new PropertyCard
             {
                 Title = "启动指示",
-                Description = "1 表示启动，0 表示停止",
+                Description = "1 表示启动",
                 Value = data.StartInstruction
             });
 

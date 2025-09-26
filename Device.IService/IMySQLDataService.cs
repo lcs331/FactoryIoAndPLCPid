@@ -21,5 +21,9 @@ namespace Device.IService
         // 删除设备数据记录
         Task DeleteDeviceData(int id);
 
+        Task<IEnumerable<DeviceDataInfos>> GetDeviceDataPageAsync(int pageNumber, int pageSize);
+        Task<int> GetDeviceDataCountAsync(); // 用于计算总页数
+
+
     }
 }

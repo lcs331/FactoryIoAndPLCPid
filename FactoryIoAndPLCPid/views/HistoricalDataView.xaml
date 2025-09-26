@@ -97,15 +97,23 @@
                 <!-- 按钮区 -->
                 <StackPanel Orientation="Horizontal">              
                     <Button Style="{StaticResource ModernButton}" Height="30"  Width="80" Content="查询" Command="{Binding QueryCommand}"/>
-                    <Button Style="{StaticResource ModernButton}" Height="30"  Width="80" Content="首页" Command="{Binding QueryCommand}"/>
-                    <Button Style="{StaticResource ModernButton}" Height="30"  Width="80" Content="上一页" Command="{Binding QueryCommand}"/>
-                    <Button Style="{StaticResource ModernButton}" Height="30"  Width="80" Content="下一页" Command="{Binding QueryCommand}"/>
-                    <Button Style="{StaticResource ModernButton}" Height="30"  Width="80" Content="尾页" Command="{Binding QueryCommand}"/>
-                    <Button Style="{StaticResource ModernButton}" Height="30"  Width="80" Content="转到" Command="{Binding QueryCommand}"/>
+                    <Button Style="{StaticResource ModernButton}" Height="30"  Width="80" Content="首页" Command="{Binding FirstPageCommand}"/>
+                    <Button Style="{StaticResource ModernButton}" Height="30"  Width="80" Content="上一页" Command="{Binding PrevPageCommand}"/>
+                    <Button Style="{StaticResource ModernButton}" Height="30"  Width="80" Content="下一页" Command="{Binding NextPageCommand}"/>
+                    <Button Style="{StaticResource ModernButton}" Height="30"  Width="80" Content="尾页" Command="{Binding LastPageCommand}"/>
+                    <Button Style="{StaticResource ModernButton}" Height="30"  Width="80" Content="转到" Command="{Binding ToPageCommand}"/>
                     <TextBox Width="100" Margin="10,0,0,0"
+                             FontSize="14"
                      Style="{StaticResource CapsuleTextBoxA}"
+                             TextAlignment="Center"
                              Background="White" Height="35"
-                     Text="{Binding SearchText, Mode=TwoWay}"/>
+                     Text="{Binding CurrentPage , Mode=TwoWay}"/> 
+                    
+                    
+                    <Label Width="100" Margin="10,0,0,0"
+                     Style="{StaticResource CapsuleLabel}"
+                             Background="White" Height="35"
+                     Content="{Binding SearchText}"/>
                 </StackPanel>
             </DockPanel>
         </Border>
@@ -120,8 +128,8 @@
                              CanUserAddRows="False"
                              IsReadOnly="True">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="设备启动" Binding="{Binding DeviceStart}" Width="1*"/>
-                            <DataGridTextColumn Header="错误状态" Binding="{Binding ErrorState}" Width="1*"/>
+                            <DataGridTextColumn Header="设备启动" Binding="{Binding DeviceStart}" Width="0.5*"/>
+                            <DataGridTextColumn Header="错误状态" Binding="{Binding ErrorState}" Width="0.5*"/>
                             <DataGridTextColumn Header="设备水位" Binding="{Binding EquipmentWaterLevel}" Width="1*"/>
                             <DataGridTextColumn Header="出水速率" Binding="{Binding WaterOutflowRate}" Width="1*"/>
                             <DataGridTextColumn Header="启动指示" Binding="{Binding StartInstruction}" Width="1*"/>
@@ -129,7 +137,7 @@
                             <DataGridTextColumn Header="进水阀门" Binding="{Binding WaterInletValve}" Width="1*"/>
                             <DataGridTextColumn Header="出水阀门" Binding="{Binding WaterOutletValve}" Width="1*"/>
                             <DataGridTextColumn Header="设备在线" Binding="{Binding DeviceOnline}" Width="1*"/>
-                            <DataGridTextColumn Header="时间戳" Binding="{Binding Timestamp}" Width="1*"/>
+                            <DataGridTextColumn Header="时间戳" Binding="{Binding DeviceDateTime, StringFormat='yyyy-MM-dd HH:mm:ss'}" Width="1*"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Border>

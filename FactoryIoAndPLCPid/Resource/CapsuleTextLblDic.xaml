@@ -45,7 +45,8 @@
                     <Border Background="{TemplateBinding Background}"
                       CornerRadius="10"
                      Padding="10,5,10,5" >
-                        <ContentPresenter HorizontalAlignment="Center"
+                        <ContentPresenter 
+                                    HorizontalAlignment="Center"
                                     VerticalAlignment="Center"/>
                     </Border>
                 </ControlTemplate>
@@ -57,11 +58,12 @@
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
                     <Border Background="{TemplateBinding Background}"
-                   CornerRadius="10"
-                  Padding="10,5,10,5" >
-                        <ContentPresenter  Content="{TemplateBinding Text}"
-                            HorizontalAlignment="Center"
-                                 VerticalAlignment="Center"/>
+                            CornerRadius="10"
+                            Padding="0,10"
+                            >
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                  HorizontalScrollBarVisibility="Hidden"
+                                  VerticalScrollBarVisibility="Hidden"/>
                     </Border>
                 </ControlTemplate>
             </Setter.Value>

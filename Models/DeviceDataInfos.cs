@@ -34,5 +34,7 @@ namespace Models
         public float WaterOutletValve { get; set; }
 
         public int DeviceOnline { get; set; }
+
+        public DateTime DeviceDateTime { get; set; }
     }
 }
