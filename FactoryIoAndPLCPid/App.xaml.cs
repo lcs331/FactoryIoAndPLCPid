@@ -1,17 +1,24 @@
 ﻿using Device.IService;
 using Device.Service;
+using DryIoc.ImTools;
 using FactoryIoAndPLCPid.ViewModels;
 using FactoryIoAndPLCPid.ViewModels.Common;
 using FactoryIoAndPLCPid.views;
+using Google.Protobuf.WellKnownTypes;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Config;
 using NLog.Extensions.Logging;
+using Prism.Events;
 using Prism.Ioc;
 using System.Configuration;
 using System.Data;
 using System.Windows;
+
 namespace FactoryIoAndPLCPid
 {
     /// <summary>
@@ -20,6 +27,47 @@ namespace FactoryIoAndPLCPid
     public partial class App : PrismApplication
     {
         private ILogger<App> _logger;
+        private IHost _webHost;
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+
+            _webHost = Host.CreateDefaultBuilder()
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseUrls("http://192.168.1.13:5000");
+                    webBuilder.ConfigureServices(service =>
+                        {
+                            service.AddControllers();
+                            service.AddSingleton<IMySQLDataService, MySQLDataService>();
+
+                        }
+                        );
+
+                    webBuilder.Configure(app =>
+                     {
+                         app.UseRouting();
+                         app.UseEndpoints(endpoint =>
+                         {
+                             endpoint.MapControllers();
+                         }
+                         );
+                     });
+                }
+
+                ).Build();
+
+            _webHost.StartAsync();
+
+         
+
+
+        }
+        protected override void OnExit(ExitEventArgs e)
+        {
+            System.Environment.Exit(0);
+            base.OnExit(e);
+        }
         protected override Window CreateShell()
         {
            return Container.Resolve<MainView>();
@@ -48,8 +96,11 @@ namespace FactoryIoAndPLCPid
             {
                 loggingBuilder.ClearProviders();
                 loggingBuilder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+           
                 loggingBuilder.AddNLog(config);
             });
+
+
 
             // 3. 构建 ServiceProvider
             var serviceProvider = services.BuildServiceProvider();
@@ -58,11 +109,11 @@ namespace FactoryIoAndPLCPid
             var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
             containerRegistry.RegisterInstance(loggerFactory);
             containerRegistry.Register(typeof(ILogger<>), typeof(Logger<>));
-
             containerRegistry.Register<IMySQLDataService, MySQLDataService>();
             containerRegistry.Register<IGetSystemDataService, GetSystemDataService>();
             containerRegistry.Register<IConfigurationService, ConfigurationService>();
             containerRegistry.Register<IRealTimeMonitoringService, RealTimeMonitoringService>();
+            containerRegistry.Register<IExportExcel, ExportExcel>();
             containerRegistry.RegisterForNavigation<CommunicationConfigurationView>();
             containerRegistry.RegisterForNavigation<ErrorAndLogView>();
             containerRegistry.RegisterForNavigation<HistoricalDataView>();
@@ -77,7 +128,17 @@ namespace FactoryIoAndPLCPid
             base.OnInitialized();
             _logger = Container.Resolve<ILogger<App>>(); // 解析 logger
             RegisterGlobalExceptionHandlers();
-            var resourceManager= Container.Resolve<IRegionManager>();
+
+            // ✅ 在这里 Prism 已经完成容器构建，IEventAggregator 可用
+            var eventAggregator = Container.Resolve<IEventAggregator>();
+            var loggerFactory = Container.Resolve<ILoggerFactory>();
+
+            // ✅ 添加自定义 Provider
+            loggerFactory.AddProvider(new EventAggregatorLoggerProvider(eventAggregator));
+
+
+            var resourceManager = Container.Resolve<IRegionManager>();
+            resourceManager.RequestNavigate("ContentRegion", "ErrorAndLogView");
             resourceManager.RequestNavigate("ContentRegion", "CommunicationConfigurationView");
 
         }

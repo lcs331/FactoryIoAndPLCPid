@@ -7,6 +7,20 @@
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="1250">
     <Grid Background="AliceBlue">
-       
+        <DataGrid Margin="20" ItemsSource="{Binding LogMessages}" AutoGenerateColumns="False" Height="680">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="时间" Binding="{Binding Time,StringFormat='yyyy-MM-dd HH:mm:ss'}" Width="150" />
+                <DataGridTextColumn Header="级别" Binding="{Binding Level}" Width="100" />
+                <DataGridTextColumn Header="内容" Binding="{Binding Message}" Width="*" >
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                            <!-- 超长省略号 -->
+                            <Setter Property="TextWrapping" Value="NoWrap"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </UserControl>

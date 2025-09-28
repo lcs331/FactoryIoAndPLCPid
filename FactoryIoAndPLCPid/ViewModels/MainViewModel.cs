@@ -51,6 +51,7 @@ namespace FactoryIoAndPLCPid.ViewModels
                 {
                     window.Close();
                     timer.Stop();
+                    Application.Current.Shutdown();
                 }
                 );
                 _regionManager = regionManager;

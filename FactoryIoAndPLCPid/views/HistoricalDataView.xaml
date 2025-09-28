@@ -114,7 +114,19 @@
                      Style="{StaticResource CapsuleLabel}"
                              Background="White" Height="35"
                      Content="{Binding SearchText}"/>
+                    <TextBlock Margin="20,10,0,0"
+                               Text="{Binding ExcelResultMessage}"
+                               FontSize="14"
+                               Foreground="Green"
+                               />
+                   
+                    
                 </StackPanel>
+                <Button
+                        HorizontalAlignment="Right"
+                        Style="{StaticResource ModernButton}" Height="30" 
+                        Width="80" Content="导出" Command="{Binding ExportCommand}"/>
+
             </DockPanel>
         </Border>
         <Grid Grid.Row="1" >
